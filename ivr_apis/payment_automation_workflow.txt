@@ -1,0 +1,90 @@
+Patient calls on the care cloud phone number, allow patient to dial in payment option directly or talk with help desk
+executive
+ 
+1)    IVR Side:
+ 
+        IVR script “Welcome to the automated payment line. Please tell us your account number.”
+        Patient speaks the “account number”
+        Send “account number” audio to AI team
+ 
+2)    AI Side:
+        Perform STT & Extraction of “account number”
+        Yield “account number” (In text or Audio)
+ 
+3)    IVR SIDE:
+        IVR script “You entered “account number" if this is correct, please say yes to continue or no to re-enter
+        Send conformation Audio to AI team
+ 
+4)    AI Side:
+        Perform SST of conformation Audio
+        Classify it either yes or no.
+        if Yes:
+            System connects with database to confirms the patients “account number” and gather the information
+            If “account number” is not confirmed from database then:
+                YIELD “I am sorry, that's not a valid account number, Please try again”
+            else If “account number” is confirmed from database then
+                Yield: IVR script “You currently have a balance of “due amount” on your account. 
+                        If you'd like pay in full please confirm by saying yes, to pay a different amount please tell us your amount after beep”
+ 
+                IVR SIDE:
+                     Send payment Audio to AI team
+                     Perform SST of extract the audio and perform classification and extact the audio amount.
+ 
+ 
+        if No:
+            Yield "Ask patient to say the “account number” again"
+
+    Patient Says No, Ask patient to say the “account number” again
+    Patient Says yes, System connects with database to confirms the patients “account number” and gather the information
+If “account number” is not confirmed from database then
+IVR script “I am sorry, that's not a valid account number, Please try again”
+If “account number” is confirmed from database then
+IVR script “You currently have a balance of “due amount” on your account. If you'd like pay in full please confirm by saying yes, to pay a different amount please tell us your amount after beep” 
+If patient says custom amount 
+System get the custom amount audio.
+If patient says yes
+IVR  script "We accept all major credit and debit cards. Please tell  your credit card number after beep"
+Patient tells the "credit card number"
+IVR  script “You entered the "credit card number" if this is correct, please say yes to continue or no to re-enter”
+Upon saying No, allow patient to share the "credit card number" again
+On saying Yes
+IVR script “Please say the 2 digit  month and 2 digit year of the expiration date as it appears  on your card”
+Patient tells the "date" in the format mm/yy
+IVR script “You said "date" if this is correct, Say Yes. or No to re-enter”
+On saying No, allow patient to tell the “date” again
+On Yes, system checks the date is valid or not (date >= todate ?)
+If date is invalid then
+IVR script “ I am sorry, that date you entered is invalid. Please try again”
+If date is valid then
+IVR  script “Please enter your cards 3- or 4-digit security code followed by the pound sign.”
+Patient tells the "Security code“ (Optional)
+IVR  script “You said the “security code”, if this is correct, Say yes. If incorrect, Say No to re-enter”
+On saying No, allow patient to tell the “security code” again
+On saying Yes
+IVR  script "Please hold while we process your payment, do not hang up"
+System sends payment request to the gateway (webservices API)”
+If Payment is not successful on (1st attempt)
+IVR  script “I'm sorry that's not a valid account number, please try again”
+And transfer call to the “Step 7 IVR  script”.
+If Payment is not successful on (2nd attempt)
+IVR  script “Say No to speak with a representative or, Say Yes to transfer to service IVR, To end this call, simply hang up.”
+Say No transfer call to the helpdesk
+Say yes to transfer call to the service IVR
+If Payment is successful
+IVR script “Thank you for payment. Your payment has been processed. Your confirmation number is #####. again, the confirmation number is #######”
+System connects with DB to update patient record with successful payment. (webservices / talkEHR API)
+IVR script “Our records show you are calling from #######, if you would like a copy of your payment sent to this number say yes. if you would like to enter a different number say No .If you would like to skip this step say skip”
+On yes send the text message on the #######
+Receipt text (Thank you for your payment. Your confirmation number is [#######]. Please click here for a copy of your receipt. when they click- it opens a receipt and then they can print it- save a screen shot or email it to them selves) 
+Sample receipt is attached in workflow for your reference
+ 
+Say Yes to allow patient to enter the different phone number
+IVR script “You entered “phone number" if this is correct, Say yes. Or Say No to re enter”
+On saying No ,allow patient to re-enter the “phone number”
+On saying Yes send the text message on the “phone number”
+Receipt text (Thank you for your payment. Your confirmation number is [#######]. Please click here for a copy of your receipt. when they click- it opens a receipt and then they can print it- save a screen shot or email it to them selves) 
+Sample receipt is attached in workflow for your reference
+IVR  script “Thank you for your payment! If you are done, please hang up or  choose from  the following options: 
+Say No to speak with a representative or, Say Yes to transfer to service IVR, To end this call, simply hang up.”
+Upon saying No transfer call to the helpdesk
+Upon saying transfer call to the service IVR
